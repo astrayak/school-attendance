@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Alur Absensi Siswa</title>
+<style>
+    :root {
+        --ink: #0f172a;
+        --body: #334155;
+        --muted: #64748b;
+        --line: #dbe4f0;
+        --bg: #eef4fb;
+        --card: #ffffff;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+        margin: 0;
+        padding: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    #canvas {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background:
+            radial-gradient(circle at 7% 5%, rgba(22, 128, 255, .08), transparent 30%),
+            radial-gradient(circle at 93% 95%, rgba(16, 185, 129, .08), transparent 32%),
+            var(--bg);
+    }
+
+    .masthead {
+        position: absolute;
+        left: 72px;
+        top: 48px;
+        right: 72px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 32px;
+    }
+
+    .eyebrow {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-family: Consolas, "JetBrains Mono", monospace;
+        font-size: 11px;
+        letter-spacing: .24em;
+        text-transform: uppercase;
+        color: #1680ff;
+    }
+
+    .eyebrow::before {
+        content: "";
+        width: 38px;
+        height: 2px;
+        background: #1680ff;
+    }
+
+    h1 {
+        margin: 9px 0 0;
+        font-size: 46px;
+        line-height: 1.04;
+        letter-spacing: -.035em;
+        font-weight: 800;
+    }
+
+    .subtitle {
+        margin: 10px 0 0;
+        font-size: 16px;
+        color: var(--muted);
+    }
+
+    .hint {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 16px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, .72);
+        font-family: Consolas, "JetBrains Mono", monospace;
+        font-size: 10px;
+        letter-spacing: .13em;
+        text-transform: uppercase;
+        color: var(--body);
+        white-space: nowrap;
+    }
+
+    .hint svg { width: 18px; height: 18px; color: #1680ff; }
+
+    .flow {
+        position: absolute;
+        left: 72px;
+        top: 205px;
+        width: 1776px;
+        height: 682px;
+    }
+
+    #wires {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    .step {
+        position: absolute;
+        width: 576px;
+        height: 330px;
+        display: flex;
+        flex-direction: column;
+        padding: 24px 26px 22px;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        box-shadow: 0 10px 26px rgba(15, 23, 42, .07);
+        overflow: hidden;
+        z-index: 1;
+    }
+
+    .step::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        right: 0;
+        height: 5px;
+        background: var(--c);
+    }
+
+    .step-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .num {
+        font-family: Consolas, "JetBrains Mono", monospace;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: .16em;
+        color: var(--c);
+    }
+
+    .icon {
+        display: grid;
+        place-items: center;
+        width: 46px;
+        height: 46px;
+        border-radius: 13px;
+        background: color-mix(in srgb, var(--c) 11%, #ffffff);
+        color: var(--c);
+    }
+
+    .icon svg { width: 24px; height: 24px; }
+
+    .step h3 {
+        margin: 16px 0 0;
+        font-size: 23px;
+        line-height: 1.15;
+        letter-spacing: -.02em;
+        font-weight: 750;
+    }
+
+    .step p {
+        margin: 8px 0 0;
+        font-size: 14.5px;
+        line-height: 1.5;
+        color: var(--body);
+    }
+
+    .example {
+        margin-top: 12px;
+        padding: 8px 12px;
+        border-radius: 9px;
+        background: #f8fafc;
+        border: 1px solid #eef2f7;
+        font-size: 12.5px;
+        line-height: 1.45;
+        color: var(--muted);
+    }
+
+    .example b {
+        font-family: Consolas, "JetBrains Mono", monospace;
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        color: var(--c);
+        margin-right: 6px;
+    }
+
+    .tables {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: auto;
+        padding-top: 13px;
+        border-top: 1px solid #eef2f7;
+    }
+
+    .tables span {
+        padding: 3px 8px;
+        border-radius: 6px;
+        background: #f1f5f9;
+        color: #475569;
+        font-family: Consolas, "JetBrains Mono", monospace;
+        font-size: 10px;
+        line-height: 1.4;
+    }
+
+    .support {
+        position: absolute;
+        left: 72px;
+        top: 917px;
+        width: 1776px;
+        height: 62px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 0 18px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, .66);
+    }
+
+    .support-label {
+        flex-shrink: 0;
+        font-family: Consolas, "JetBrains Mono", monospace;
+        font-size: 9.5px;
+        letter-spacing: .18em;
+        text-transform: uppercase;
+        color: #0d9488;
+    }
+
+    .support-chips {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 10px;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .support-chip {
+        display: flex;
+        align-items: baseline;
+        justify-content: center;
+        gap: 7px;
+        padding: 5px 10px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        background: #ffffff;
+        white-space: nowrap;
+    }
+
+    .support-chip code {
+        font-family: Consolas, "JetBrains Mono", monospace;
+        font-size: 10.5px;
+        font-weight: 700;
+        color: var(--ink);
+    }
+
+    .support-chip span {
+        font-size: 10.5px;
+        color: var(--muted);
+    }
+
+    .footer {
+        position: absolute;
+        left: 72px;
+        right: 72px;
+        bottom: 28px;
+        display: flex;
+        justify-content: space-between;
+        gap: 24px;
+        font-family: Consolas, "JetBrains Mono", monospace;
+        font-size: 9.5px;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        color: #94a3b8;
+    }
+</style>
+</head>
+<body>
+<div id="canvas">
+    <header class="masthead">
+        <div>
+            <div class="eyebrow">Alur Kerja Sistem</div>
+            <h1>Alur Absensi Siswa</h1>
+            <p class="subtitle">Dari jadwal pelajaran sampai laporan harian &mdash; enam langkah sederhana.</p>
+        </div>
+        <div class="hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15"/><path d="M13 6l6 6-6 6"/></svg>
+            Baca berurutan 01 &rarr; 06
+        </div>
+    </header>
+
+    <section class="flow" id="flow">
+        <svg id="wires" width="1776" height="682" viewBox="0 0 1776 682" fill="none">
+            <defs>
+                <marker id="head" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                    <path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/>
+                </marker>
+            </defs>
+        </svg>
+
+        <article class="step" style="--c:#1680ff; left:0; top:0">
+            <div class="step-top">
+                <span class="num">01</span>
+                <span class="icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M15 9h3M15 13h3M6.4 16.2c.6-1.2 1.5-1.8 2.6-1.8s2 .6 2.6 1.8"/></svg>
+                </span>
+            </div>
+            <h3>Akun &amp; Profil</h3>
+            <p>Setiap guru dan siswa punya satu akun untuk masuk. Profil menyimpan NIP, NIS, dan data pribadi.</p>
+            <div class="example"><b>Contoh</b>Budi punya akun guru; Siti punya akun siswa.</div>
+            <div class="tables"><span>pengguna</span><span>guru</span><span>siswa</span></div>
+        </article>
+
+        <article class="step" style="--c:#6366f1; left:600px; top:0">
+            <div class="step-top">
+                <span class="num">02</span>
+                <span class="icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/><path d="M8 14h3M8 17.5h6"/></svg>
+                </span>
+            </div>
+            <h3>Kelas &amp; Jadwal</h3>
+            <p>Sekolah menyusun jadwal: mapel apa, di kelas mana, hari apa, dan jam berapa.</p>
+            <div class="example"><b>Contoh</b>Matematika, Senin 07.30, kelas X IPA 1.</div>
+            <div class="tables"><span>kelas</span><span>jadwal_pelajaran</span></div>
+        </article>
+
+        <article class="step" style="--c:#f59e0b; left:1200px; top:0">
+            <div class="step-top">
+                <span class="num">03</span>
+                <span class="icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8.4l6 3.6-6 3.6z"/></svg>
+                </span>
+            </div>
+            <h3>Sesi Absensi</h3>
+            <p>Saat pelajaran dimulai, sistem membuka sesi absensi untuk jadwal pada tanggal itu.</p>
+            <div class="example"><b>Contoh</b>Sesi Matematika tanggal 23 November 2026.</div>
+            <div class="tables"><span>sesi_absensi</span></div>
+        </article>
+
+        <article class="step" style="--c:#ea580c; left:0; top:352px">
+            <div class="step-top">
+                <span class="num">04</span>
+                <span class="icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9z"/><path d="M8.6 13.2l2.4 2.4 4.4-4.8"/></svg>
+                </span>
+            </div>
+            <h3>Catat Kehadiran</h3>
+            <p>Guru mencatat hadir, izin, sakit, atau alpha. Bisa manual, bisa juga lewat scan QR.</p>
+            <div class="example"><b>Contoh</b>Siti tercatat hadir pukul 07.32.</div>
+            <div class="tables"><span>catatan_absensi</span><span>kode_qr_siswa</span></div>
+        </article>
+
+        <article class="step" style="--c:#0d9488; left:600px; top:352px">
+            <div class="step-top">
+                <span class="num">05</span>
+                <span class="icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18.5h2"/><path d="M9.6 9.6l1.7 1.7 3.1-3.4"/></svg>
+                </span>
+            </div>
+            <h3>Konfirmasi</h3>
+            <p>Siswa memastikan pembelajaran benar-benar berlangsung. Jika tidak, admin akan memeriksa.</p>
+            <div class="example"><b>Contoh</b>Siswa menekan &ldquo;Pembelajaran berlangsung&rdquo;.</div>
+            <div class="tables"><span>permintaan_konfirmasi</span><span>petugas_konfirmasi</span></div>
+        </article>
+
+        <article class="step" style="--c:#10b981; left:1200px; top:352px">
+            <div class="step-top">
+                <span class="num">06</span>
+                <span class="icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V13M10 20V5M16 20v-9M22 20H2"/></svg>
+                </span>
+            </div>
+            <h3>Rekap &amp; Laporan</h3>
+            <p>Sistem merangkum kehadiran harian, lalu menyajikannya sebagai laporan dan notifikasi.</p>
+            <div class="example"><b>Contoh</b>Siti hadir 4 dari 5 mapel hari ini.</div>
+            <div class="tables"><span>ringkasan_absensi_harian</span></div>
+        </article>
+    </section>
+
+    <section class="support">
+        <span class="support-label">Tabel pendukung</span>
+        <div class="support-chips">
+            <span class="support-chip"><code>kode_qr_siswa</code><span>QR unik siswa</span></span>
+            <span class="support-chip"><code>audit_absensi</code><span>jejak perubahan</span></span>
+            <span class="support-chip"><code>notifikasi</code><span>pemberitahuan</span></span>
+            <span class="support-chip"><code>log_aktivitas</code><span>catatan sistem</span></span>
+            <span class="support-chip"><code>pengaturan_sistem</code><span>pengaturan aplikasi</span></span>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <span>Sistem Absensi Sekolah &middot; Alur Harian</span>
+        <span>Warna setiap langkah sama dengan warna domain pada poster schema</span>
+    </footer>
+</div>
+
+<script>
+    const wires = document.getElementById('wires');
+    const svgNS = 'http://www.w3.org/2000/svg';
+
+    function line(x1, y1, x2, y2, opts = {}) {
+        const el = document.createElementNS(svgNS, 'line');
+        el.setAttribute('x1', x1);
+        el.setAttribute('y1', y1);
+        el.setAttribute('x2', x2);
+        el.setAttribute('y2', y2);
+        el.setAttribute('stroke', opts.color ?? '#94a3b8');
+        el.setAttribute('stroke-width', opts.width ?? 2);
+        el.setAttribute('stroke-linecap', 'round');
+        if (opts.dash) el.setAttribute('stroke-dasharray', opts.dash);
+        if (opts.arrow) el.setAttribute('marker-end', 'url(#head)');
+        wires.appendChild(el);
+    }
+
+    function path(d, opts = {}) {
+        const el = document.createElementNS(svgNS, 'path');
+        el.setAttribute('d', d);
+        el.setAttribute('fill', 'none');
+        el.setAttribute('stroke', opts.color ?? '#94a3b8');
+        el.setAttribute('stroke-width', opts.width ?? 2);
+        el.setAttribute('stroke-linecap', 'round');
+        if (opts.dash) el.setAttribute('stroke-dasharray', opts.dash);
+        if (opts.arrow) el.setAttribute('marker-end', 'url(#head)');
+        wires.appendChild(el);
+    }
+
+    function draw() {
+        const CARD = 576;
+        const GAP = 24;
+        const ROW = 352;
+
+        // Horizontal arrows in row 1: 01 -> 02 -> 03
+        for (let i = 0; i < 2; i++) {
+            const x1 = i * (CARD + GAP) + CARD + 4;
+            line(x1, 165, x1 + 16, 165, { arrow: true });
+        }
+
+        // Horizontal arrows in row 2: 04 -> 05 -> 06
+        for (let i = 0; i < 2; i++) {
+            const x1 = i * (CARD + GAP) + CARD + 4;
+            line(x1, ROW + 165, x1 + 16, ROW + 165, { arrow: true });
+        }
+
+        // Connector 03 -> 04: down, across the row gap, then down into card 04.
+        const xStart = 2 * (CARD + GAP) + CARD / 2;
+        const xEnd = CARD / 2;
+        const yMid = 330 + (ROW - 330) / 2;
+        path(
+            `M ${xStart} 330 L ${xStart} ${yMid} L ${xEnd} ${yMid} L ${xEnd} ${ROW - 1}`,
+            { dash: '5 5', color: '#cbd5e1', width: 1.6, arrow: true }
+        );
+
+        window.__ready = true;
+    }
+
+    requestAnimationFrame(() => requestAnimationFrame(draw));
+</script>
+</body>
+</html>

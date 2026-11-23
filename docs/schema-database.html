@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Schema Database - Sistem Absensi Sekolah</title>
+<style>
+    :root {
+        --ink: #0f172a;
+        --body: #334155;
+        --muted: #64748b;
+        --line: #dbe4f0;
+        --bg: #eef4fb;
+        --card: #ffffff;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+        margin: 0;
+        padding: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    #canvas {
+        position: relative;
+        width: 2100px;
+        height: 1700px;
+        overflow: hidden;
+        background:
+            radial-gradient(circle at 12% 8%, rgba(22, 128, 255, .07), transparent 32%),
+            radial-gradient(circle at 88% 92%, rgba(13, 148, 136, .07), transparent 34%),
+            var(--bg);
+    }
+
+    #wires {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    .masthead {
+        position: absolute;
+        left: 40px;
+        top: 30px;
+        right: 40px;
+        z-index: 2;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 24px;
+    }
+
+    .eyebrow {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-family: Consolas, "JetBrains Mono", monospace;
+        font-size: 11px;
+        letter-spacing: .22em;
+        text-transform: uppercase;
+        color: #1680ff;
+    }
+
+    .eyebrow::before {
+        content: "";
+        width: 34px;
+        height: 2px;
+        background: #1680ff;
+    }
+
+    h1 {
+        margin: 8px 0 0;
+        font-size: 38px;
+        line-height: 1.08;
+        letter-spacing: -.03em;
+        font-weight: 800;
+    }
+
+    .subtitle {
+        margin: 8px 0 0;
+        font-size: 14px;
+        color: var(--muted);
+    }
+
+    .legend {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 8px 14px;
+        max-width: 900px;
+        padding-bottom: 6px;
+    }
+
+    .legend-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-family: Consolas, "JetBrains Mono", monospace;
+        font-size: 10px;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        color: var(--body);
+    }
+
+    .legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+        background: var(--dot);
+    }
+
+    .card {
+        position: absolute;
+        width: 340px;
+        z-index: 2;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        box-shadow: 0 8px 22px rgba(15, 23, 42, .07);
+        overflow: hidden;
+    }
+
+    .card-head {
+        padding: 10px 14px 9px;
+        border-top: 4px solid var(--domain);
+        border-bottom: 1px solid var(--line);
+        background: color-mix(in srgb, var(--domain) 7%, #ffffff);
+    }
+
+    .card-name {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .card-name code {
+        font-family: Consolas, "JetBrains Mono", monospace;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: -.01em;
+        color: var(--ink);
+    }
+
+    .card-name span {
+        font-family: Consolas, "JetBrains Mono", monospace;
+        font-size: 9px;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        color: var(--domain);
+        white-space: nowrap;
+    }
+
+    .card-label {
+        margin-top: 2px;
+        font-size: 11px;
+        color: var(--muted);
+    }
+
+    .col-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        height: 26px;
+        padding: 0 14px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .col-row:last-child {
+        border-bottom: 0;
+    }
+
+    .col-row code {
+        font-family: Consolas, "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: var(--body);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .col-row.is-fk code {
+        color: #0758dc;
+    }
+
+    .col-row.is-pk code {
+        color: var(--ink);
+        font-weight: 700;
+    }
+
+    .key {
+        flex-shrink: 0;
+        padding: 1px 6px;
+        border-radius: 999px;
+        font-family: Consolas, "JetBrains Mono", monospace;
+        font-size: 8px;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+
+    .key-pk { background: #fef3c7; color: #92400e; }
+    .key-fk { background: #dbeafe; color: #0758dc; }
+    .key-uq { background: #ede9fe; color: #5b21b6; }
+    .key-en { background: #f1f5f9; color: #475569; }
+
+    .notes {
+        position: absolute;
+        left: 1720px;
+        top: 1010px;
+        width: 340px;
+        z-index: 2;
+        padding: 16px 16px 15px;
+        background: #0f172a;
+        border-radius: 14px;
+        color: #e2e8f0;
+        box-shadow: 0 10px 26px rgba(15, 23, 42, .18);
+    }
+
+    .notes h2 {
+        margin: 0;
+        font-family: Consolas, "JetBrains Mono", monospace;
+        font-size: 10px;
+        letter-spacing: .18em;
+        text-transform: uppercase;
+        color: #7dd3fc;
+    }
+
+    .notes p {
+        margin: 10px 0 0;
+        font-size: 11.5px;
+        line-height: 1.55;
+        color: #cbd5e1;
+    }
+
+    .notes .note-row {
+        display: flex;
+        gap: 9px;
+        margin-top: 9px;
+        align-items: flex-start;
+    }
+
+    .notes .note-row b {
+        display: inline-block;
+        flex-shrink: 0;
+        min-width: 38px;
+        padding: 1px 6px;
+        border-radius: 5px;
+        font-family: Consolas, "JetBrains Mono", monospace;
+        font-size: 9px;
+        text-align: center;
+        background: #1e293b;
+        color: #93c5fd;
+    }
+
+    .notes .note-row span {
+        font-size: 11px;
+        line-height: 1.45;
+        color: #cbd5e1;
+    }
+
+    /* Panel alur inti */
+    .flow {
+        position: absolute;
+        left: 40px;
+        top: 1005px;
+        width: 340px;
+        z-index: 2;
+        padding: 16px 16px 12px;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        box-shadow: 0 8px 22px rgba(15, 23, 42, .07);
+    }
+
+    .flow h2 {
+        margin: 0;
+        font-family: Consolas, "JetBrains Mono", monospace;
+        font-size: 10px;
+        letter-spacing: .18em;
+        text-transform: uppercase;
+        color: #1680ff;
+    }
+
+    .flow-sub {
+        margin: 4px 0 4px;
+        font-size: 10.5px;
+        line-height: 1.45;
+        color: var(--muted);
+    }
+
+    .flow-step {
+        display: flex;
+        gap: 10px;
+        padding: 8px 0;
+        border-top: 1px dashed #e2e8f0;
+    }
+
+    .flow-step:first-of-type {
+        border-top: 0;
+    }
+
+    .flow-num {
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        width: 21px;
+        height: 21px;
+        border-radius: 50%;
+        background: #e8f1ff;
+        color: #0758dc;
+        font-family: Consolas, "JetBrains Mono", monospace;
+        font-size: 10px;
+        font-weight: 700;
+    }
+
+    .flow-step code {
+        font-family: Consolas, "JetBrains Mono", monospace;
+        font-size: 10.5px;
+        font-weight: 700;
+        color: var(--ink);
+    }
+
+    .flow-step p {
+        margin: 2px 0 0;
+        font-size: 10.5px;
+        line-height: 1.4;
+        color: var(--muted);
+    }
+
+    /* Panel aturan unik */
+    .rules {
+        position: absolute;
+        left: 1720px;
+        top: 1320px;
+        width: 340px;
+        z-index: 2;
+        padding: 16px;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        box-shadow: 0 8px 22px rgba(15, 23, 42, .07);
+    }
+
+    .rules h2 {
+        margin: 0 0 10px;
+        font-family: Consolas, "JetBrains Mono", monospace;
+        font-size: 10px;
+        letter-spacing: .18em;
+        text-transform: uppercase;
+        color: #0d9488;
+    }
+
+    .rule-row {
+        display: flex;
+        gap: 9px;
+        align-items: flex-start;
+        padding: 7px 0;
+        border-top: 1px solid #f1f5f9;
+    }
+
+    .rule-row:first-of-type {
+        border-top: 0;
+        padding-top: 0;
+    }
+
+    .rule-row b {
+        flex-shrink: 0;
+        padding: 1px 6px;
+        border-radius: 5px;
+        background: #ecfdf5;
+        color: #047857;
+        font-family: Consolas, "JetBrains Mono", monospace;
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: .04em;
+    }
+
+    .rule-row span {
+        font-size: 10.5px;
+        line-height: 1.4;
+        color: var(--body);
+    }
+
+    .rule-row span code {
+        font-family: Consolas, "JetBrains Mono", monospace;
+        font-size: 10px;
+        color: var(--ink);
+    }
+
+    .footer {
+        position: absolute;
+        left: 40px;
+        right: 40px;
+        bottom: 22px;
+        z-index: 2;
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        font-family: Consolas, "JetBrains Mono", monospace;
+        font-size: 9px;
+        letter-spacing: .13em;
+        text-transform: uppercase;
+        color: #94a3b8;
+    }
+</style>
+</head>
+<body>
+<div id="canvas">
+    <svg id="wires" width="2100" height="1700" viewBox="0 0 2100 1700" fill="none">
+        <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8" />
+            </marker>
+            <marker id="arrow-core" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#1680ff" />
+            </marker>
+        </defs>
+    </svg>
+
+    <header class="masthead">
+        <div>
+            <div class="eyebrow">Buku Induk Digital</div>
+            <h1>Schema Database</h1>
+            <p class="subtitle">Sistem Absensi Sekolah &middot; 22 tabel &middot; MySQL 8</p>
+        </div>
+        <div class="legend" id="legend"></div>
+    </header>
+
+    <aside class="notes">
+        <h2>Cara membaca</h2>
+        <div class="note-row"><b>PK</b><span>Primary Key &mdash; identitas unik setiap baris.</span></div>
+        <div class="note-row"><b>FK</b><span>Foreign Key &mdash; penghubung ke tabel lain.</span></div>
+        <div class="note-row"><b>unik</b><span>Nilainya tidak boleh ganda.</span></div>
+        <div class="note-row"><b>enum</b><span>Pilihan nilai yang sudah ditentukan sistem.</span></div>
+        <p>Garis penghubung menunjukkan arah relasi: dari kolom FK menuju kolom PK tabel induk. Satu baris induk dapat memiliki banyak baris anak (1 : N), kecuali diberi tanda unik (1 : 1).</p>
+    </aside>
+
+    <section class="flow">
+        <h2>Alur inti absensi</h2>
+        <p class="flow-sub">Lima tabel yang bekerja berurutan setiap hari.</p>
+        <div class="flow-step">
+            <span class="flow-num">1</span>
+            <div><code>jadwal_pelajaran</code><p>Jadwal disusun per kelas, mapel, guru, dan jam.</p></div>
+        </div>
+        <div class="flow-step">
+            <span class="flow-num">2</span>
+            <div><code>sesi_absensi</code><p>Sesi dibuka pada tanggal pelajaran berlangsung.</p></div>
+        </div>
+        <div class="flow-step">
+            <span class="flow-num">3</span>
+            <div><code>catatan_absensi</code><p>Guru mencatat hadir, izin, sakit, atau alpha.</p></div>
+        </div>
+        <div class="flow-step">
+            <span class="flow-num">4</span>
+            <div><code>permintaan_konfirmasi</code><p>Siswa memastikan pembelajaran benar berlangsung.</p></div>
+        </div>
+        <div class="flow-step">
+            <span class="flow-num">5</span>
+            <div><code>ringkasan_absensi_harian</code><p>Rekap harian menjadi bahan laporan dan notifikasi.</p></div>
+        </div>
+    </section>
+
+    <section class="rules">
+        <h2>Aturan unik penting</h2>
+        <div class="rule-row"><b>1 : 1</b><span>Satu akun <code>pengguna</code> hanya punya satu profil <code>guru</code> atau <code>siswa</code>.</span></div>
+        <div class="rule-row"><b>1 sesi</b><span>Satu <code>jadwal</code> hanya punya satu sesi per <code>tanggal_pelajaran</code>.</span></div>
+        <div class="rule-row"><b>1 catatan</b><span>Satu siswa hanya punya satu catatan per sesi absensi.</span></div>
+        <div class="rule-row"><b>1 rekap</b><span>Satu siswa hanya punya satu ringkasan per tanggal.</span></div>
+        <div class="rule-row"><b>1 QR</b><span>Token QR siswa unik dan tidak boleh dipakai ganda.</span></div>
+    </section>
+
+    <footer class="footer">
+        <span>Sumber: database/migrations &middot; absensi_sekolah</span>
+        <span>Garis biru tebal = alur inti absensi</span>
+    </footer>
+</div>
+
+<script>
+    const DOMAINS = {
+        identitas:  { color: '#1680ff', label: 'Identitas & Akun' },
+        akademik:   { color: '#10b981', label: 'Akademik' },
+        jadwal:     { color: '#6366f1', label: 'Jadwal & Penugasan' },
+        absensi:    { color: '#f59e0b', label: 'Absensi' },
+        konfirmasi: { color: '#0d9488', label: 'Konfirmasi & Rekap' },
+        sistem:     { color: '#64748b', label: 'Sistem' },
+    };
+
+    const COLUMNS = [
+        ['pengguna', 'guru', 'siswa'],
+        ['tahun_ajaran', 'semester', 'kelas', 'riwayat_kelas_siswa', 'mata_pelajaran', 'penugasan_guru'],
+        ['versi_jadwal', 'jadwal_pelajaran', 'jadwal_guru_piket', 'sesi_absensi', 'kode_qr_siswa'],
+        ['catatan_absensi', 'audit_absensi', 'petugas_konfirmasi', 'permintaan_konfirmasi', 'ringkasan_absensi_harian'],
+        ['notifikasi', 'log_aktivitas', 'pengaturan_sistem'],
+    ];
+
+    const TABLES = {
+        pengguna: {
+            label: 'Akun & Login', domain: 'identitas',
+            cols: [
+                ['id_pengguna', 'PK'], ['nama_pengguna', ''], ['email', 'unik'],
+                ['kata_sandi', ''], ['peran', 'enum'], ['status_aktif', ''],
+                ['terakhir_login', ''],
+            ],
+        },
+        guru: {
+            label: 'Profil Guru', domain: 'identitas',
+            cols: [
+                ['id_guru', 'PK'], ['id_pengguna', 'FK', 'pengguna'], ['nip / nuptk', 'unik'],
+                ['nama_lengkap', ''], ['jenis_kelamin', 'enum'], ['status_guru', 'enum'],
+            ],
+        },
+        siswa: {
+            label: 'Profil Siswa', domain: 'identitas',
+            cols: [
+                ['id_siswa', 'PK'], ['id_pengguna', 'FK', 'pengguna'], ['nis / nisn', 'unik'],
+                ['nama_lengkap', ''], ['status_siswa', 'enum'], ['nama_orang_tua', ''],
+                ['nomor_telepon', ''],
+            ],
+        },
+        tahun_ajaran: {
+            label: 'Tahun Ajaran', domain: 'akademik',
+            cols: [
+                ['id_tahun_ajaran', 'PK'], ['nama_tahun_ajaran', 'unik'],
+                ['tanggal_mulai / selesai', ''], ['status_aktif', ''],
+            ],
+        },
+        semester: {
+            label: 'Semester', domain: 'akademik',
+            cols: [
+                ['id_semester', 'PK'], ['id_tahun_ajaran', 'FK', 'tahun_ajaran'],
+                ['nama_semester', 'enum'], ['tanggal_mulai / selesai', ''],
+                ['status_aktif', ''],
+            ],
+        },
+        kelas: {
+            label: 'Kelas', domain: 'akademik',
+            cols: [
+                ['id_kelas', 'PK'], ['id_tahun_ajaran', 'FK', 'tahun_ajaran'],
+                ['wali_kelas', 'FK', 'guru'], ['nama_kelas / tingkat', ''],
+                ['jurusan', ''], ['status_kelas', 'enum'],
+            ],
+        },
+        riwayat_kelas_siswa: {
+            label: 'Riwayat Kelas Siswa', domain: 'akademik',
+            cols: [
+                ['id_riwayat_kelas', 'PK'], ['id_siswa', 'FK', 'siswa'],
+                ['id_kelas', 'FK', 'kelas'], ['id_tahun_ajaran', 'FK', 'tahun_ajaran'],
+                ['tanggal_mulai / selesai', ''], ['status_aktif', ''],
+            ],
+        },
+        mata_pelajaran: {
+            label: 'Mata Pelajaran', domain: 'jadwal',
+            cols: [
+                ['id_mata_pelajaran', 'PK'], ['kode_mata_pelajaran', 'unik'],
+                ['nama_mata_pelajaran', ''], ['status_aktif', ''],
+            ],
+        },
+        penugasan_guru: {
+            label: 'Penugasan Mengajar', domain: 'jadwal',
+            cols: [
+                ['id_penugasan_guru', 'PK'], ['id_guru', 'FK', 'guru'],
+                ['id_mata_pelajaran', 'FK', 'mata_pelajaran'], ['id_kelas', 'FK', 'kelas'],
+                ['id_semester', 'FK', 'semester'], ['tanggal_mulai / selesai', ''],
+                ['status_aktif', ''],
+            ],
+        },
+        versi_jadwal: {
+            label: 'Versi Jadwal', domain: 'jadwal',
+            cols: [
+                ['id_versi_jadwal', 'PK'], ['id_semester', 'FK', 'semester'],
+                ['dibuat_oleh', 'FK', 'pengguna'], ['nama_versi', ''],
+                ['tanggal_berlaku', ''], ['status_versi', 'enum'],
+            ],
+        },
+        jadwal_pelajaran: {
+            label: 'Jadwal Pelajaran', domain: 'jadwal',
+            cols: [
+                ['id_jadwal', 'PK'], ['id_versi_jadwal', 'FK', 'versi_jadwal'],
+                ['id_kelas', 'FK', 'kelas'], ['id_mata_pelajaran', 'FK', 'mata_pelajaran'],
+                ['id_guru', 'FK', 'guru'], ['hari', 'enum'],
+                ['jam_mulai / selesai', ''], ['ruang_kelas', ''],
+            ],
+        },
+        jadwal_guru_piket: {
+            label: 'Jadwal Guru Piket', domain: 'jadwal',
+            cols: [
+                ['id_jadwal_piket', 'PK'], ['id_guru', 'FK', 'guru'],
+                ['id_semester', 'FK', 'semester'], ['hari', 'enum'],
+                ['tanggal_mulai_berlaku', ''], ['status_aktif', ''],
+            ],
+        },
+        sesi_absensi: {
+            label: 'Sesi Absensi', domain: 'absensi',
+            cols: [
+                ['id_sesi_absensi', 'PK'], ['id_jadwal', 'FK', 'jadwal_pelajaran'],
+                ['tanggal_pelajaran', ''], ['waktu_mulai / selesai', ''],
+                ['waktu_absensi_dibuka / ditutup', ''], ['id_guru_penanggung_jawab', 'FK', 'guru'],
+                ['id_guru_pelaksana', 'FK', 'guru'], ['status_sesi', 'enum'],
+                ['waktu_disimpan', ''], ['alasan_pembatalan', ''],
+            ],
+        },
+        catatan_absensi: {
+            label: 'Catatan Kehadiran', domain: 'absensi',
+            cols: [
+                ['id_catatan_absensi', 'PK'], ['id_sesi_absensi', 'FK', 'sesi_absensi'],
+                ['id_siswa', 'FK', 'siswa'], ['id_pengguna_pencatat', 'FK', 'pengguna'],
+                ['status_kehadiran', 'enum'], ['metode_absensi', 'enum'],
+                ['waktu_kehadiran', ''],
+            ],
+        },
+        kode_qr_siswa: {
+            label: 'QR Code Siswa', domain: 'absensi',
+            cols: [
+                ['id_kode_qr', 'PK'], ['id_siswa', 'FK', 'siswa'],
+                ['token_hash', 'unik'], ['token_terenkripsi', ''],
+                ['status_aktif', ''], ['tanggal_dibuat / dicabut', ''],
+            ],
+        },
+        audit_absensi: {
+            label: 'Jejak Perubahan Absensi', domain: 'absensi',
+            cols: [
+                ['id_audit_absensi', 'PK'], ['id_catatan_absensi', 'FK', 'catatan_absensi'],
+                ['id_pengguna', 'FK', 'pengguna'], ['status_sebelumnya', 'enum'],
+                ['status_sesudahnya', 'enum'], ['alasan_perubahan', ''],
+                ['waktu_perubahan', ''],
+            ],
+        },
+        petugas_konfirmasi: {
+            label: 'Petugas Konfirmasi', domain: 'konfirmasi',
+            cols: [
+                ['id_petugas_konfirmasi', 'PK'], ['id_siswa', 'FK', 'siswa'],
+                ['id_kelas', 'FK', 'kelas'], ['id_semester', 'FK', 'semester'],
+                ['urutan_prioritas', ''], ['tanggal_mulai / selesai', ''],
+                ['status_aktif', ''],
+            ],
+        },
+        permintaan_konfirmasi: {
+            label: 'Permintaan Konfirmasi', domain: 'konfirmasi',
+            cols: [
+                ['id_permintaan_konfirmasi', 'PK'], ['id_sesi_absensi', 'FK', 'sesi_absensi'],
+                ['id_siswa_penerima', 'FK', 'siswa'], ['id_petugas_konfirmasi', 'FK', 'petugas_konfirmasi'],
+                ['urutan_penerima', ''], ['status_permintaan', 'enum'],
+                ['waktu_dikirim / kedaluwarsa', ''], ['jawaban', 'enum'],
+            ],
+        },
+        ringkasan_absensi_harian: {
+            label: 'Rekap Harian Siswa', domain: 'konfirmasi',
+            cols: [
+                ['id_ringkasan_harian', 'PK'], ['id_siswa', 'FK', 'siswa'],
+                ['id_kelas', 'FK', 'kelas'], ['tanggal (unik per siswa)', 'unik'],
+                ['jumlah_hadir / izin / sakit / alpha', ''], ['jumlah_belum_diisi', ''],
+                ['status_harian', 'enum'],
+            ],
+        },
+        notifikasi: {
+            label: 'Notifikasi', domain: 'sistem',
+            cols: [
+                ['id_notifikasi', 'PK'], ['id_pengguna', 'FK', 'pengguna'],
+                ['judul / pesan', ''], ['jenis', 'enum'],
+                ['sudah_dibaca', ''], ['dibaca_pada', ''],
+            ],
+        },
+        log_aktivitas: {
+            label: 'Log Aktivitas', domain: 'sistem',
+            cols: [
+                ['id_log_aktivitas', 'PK'], ['id_pengguna', 'FK', 'pengguna'],
+                ['jenis_aktivitas', ''], ['nama_modul', ''],
+                ['deskripsi_aktivitas', ''], ['alamat_ip', ''],
+                ['waktu_aktivitas', ''],
+            ],
+        },
+        pengaturan_sistem: {
+            label: 'Pengaturan Sistem', domain: 'sistem',
+            cols: [
+                ['id_pengaturan', 'PK'], ['dibuat_oleh', 'FK', 'pengguna'],
+                ['kunci + tanggal_berlaku', 'unik'], ['nilai', ''],
+                ['tipe', 'enum'], ['tanggal_berlaku / status_aktif', ''],
+            ],
+        },
+    };
+
+    const RELATIONS = [
+        ['guru', 'id_pengguna', 'pengguna', 'id_pengguna'],
+        ['siswa', 'id_pengguna', 'pengguna', 'id_pengguna'],
+        ['semester', 'id_tahun_ajaran', 'tahun_ajaran', 'id_tahun_ajaran'],
+        ['kelas', 'id_tahun_ajaran', 'tahun_ajaran', 'id_tahun_ajaran'],
+        ['kelas', 'wali_kelas', 'guru', 'id_guru'],
+        ['riwayat_kelas_siswa', 'id_siswa', 'siswa', 'id_siswa'],
+        ['riwayat_kelas_siswa', 'id_kelas', 'kelas', 'id_kelas'],
+        ['riwayat_kelas_siswa', 'id_tahun_ajaran', 'tahun_ajaran', 'id_tahun_ajaran'],
+        ['penugasan_guru', 'id_guru', 'guru', 'id_guru'],
+        ['penugasan_guru', 'id_mata_pelajaran', 'mata_pelajaran', 'id_mata_pelajaran'],
+        ['penugasan_guru', 'id_kelas', 'kelas', 'id_kelas'],
+        ['penugasan_guru', 'id_semester', 'semester', 'id_semester'],
+        ['versi_jadwal', 'id_semester', 'semester', 'id_semester'],
+        ['versi_jadwal', 'dibuat_oleh', 'pengguna', 'id_pengguna'],
+        ['jadwal_pelajaran', 'id_versi_jadwal', 'versi_jadwal', 'id_versi_jadwal'],
+        ['jadwal_pelajaran', 'id_kelas', 'kelas', 'id_kelas'],
+        ['jadwal_pelajaran', 'id_mata_pelajaran', 'mata_pelajaran', 'id_mata_pelajaran'],
+        ['jadwal_pelajaran', 'id_guru', 'guru', 'id_guru'],
+        ['jadwal_guru_piket', 'id_guru', 'guru', 'id_guru'],
+        ['jadwal_guru_piket', 'id_semester', 'semester', 'id_semester'],
+        ['sesi_absensi', 'id_jadwal', 'jadwal_pelajaran', 'id_jadwal', true],
+        ['sesi_absensi', 'id_guru_penanggung_jawab', 'guru', 'id_guru'],
+        ['sesi_absensi', 'id_guru_pelaksana', 'guru', 'id_guru'],
+        ['catatan_absensi', 'id_sesi_absensi', 'sesi_absensi', 'id_sesi_absensi', true],
+        ['catatan_absensi', 'id_siswa', 'siswa', 'id_siswa'],
+        ['catatan_absensi', 'id_pengguna_pencatat', 'pengguna', 'id_pengguna'],
+        ['kode_qr_siswa', 'id_siswa', 'siswa', 'id_siswa'],
+        ['audit_absensi', 'id_catatan_absensi', 'catatan_absensi', 'id_catatan_absensi', true],
+        ['audit_absensi', 'id_pengguna', 'pengguna', 'id_pengguna'],
+        ['petugas_konfirmasi', 'id_siswa', 'siswa', 'id_siswa'],
+        ['petugas_konfirmasi', 'id_kelas', 'kelas', 'id_kelas'],
+        ['petugas_konfirmasi', 'id_semester', 'semester', 'id_semester'],
+        ['permintaan_konfirmasi', 'id_sesi_absensi', 'sesi_absensi', 'id_sesi_absensi', true],
+        ['permintaan_konfirmasi', 'id_siswa_penerima', 'siswa', 'id_siswa'],
+        ['permintaan_konfirmasi', 'id_petugas_konfirmasi', 'petugas_konfirmasi', 'id_petugas_konfirmasi'],
+        ['ringkasan_absensi_harian', 'id_siswa', 'siswa', 'id_siswa'],
+        ['ringkasan_absensi_harian', 'id_kelas', 'kelas', 'id_kelas'],
+        ['notifikasi', 'id_pengguna', 'pengguna', 'id_pengguna'],
+        ['log_aktivitas', 'id_pengguna', 'pengguna', 'id_pengguna'],
+        ['pengaturan_sistem', 'dibuat_oleh', 'pengguna', 'id_pengguna'],
+    ];
+
+    const canvas = document.getElementById('canvas');
+    const wires = document.getElementById('wires');
+
+    // Legend
+    const legend = document.getElementById('legend');
+    for (const [key, domain] of Object.entries(DOMAINS)) {
+        const item = document.createElement('span');
+        item.className = 'legend-item';
+        item.innerHTML = `<span class="legend-dot" style="--dot:${domain.color}"></span>${domain.label}`;
+        legend.appendChild(item);
+    }
+
+    const KEY_CLASS = { PK: 'key-pk', FK: 'key-fk', unik: 'key-uq', enum: 'key-en' };
+
+    // Build cards column by column, stacking with a fixed gap.
+    COLUMNS.forEach((names, colIndex) => {
+        const x = 40 + colIndex * 420;
+        let y = 150;
+
+        names.forEach((name) => {
+            const table = TABLES[name];
+            const domain = DOMAINS[table.domain];
+            const card = document.createElement('section');
+            card.className = 'card';
+            card.dataset.table = name;
+            card.style.left = `${x}px`;
+            card.style.top = `${y}px`;
+            card.style.setProperty('--domain', domain.color);
+
+            const rows = table.cols.map(([column, key, parent]) => {
+                const isFk = key === 'FK';
+                const keyHtml = key ? `<span class="key ${KEY_CLASS[key] ?? 'key-en'}">${key}</span>` : '';
+                return `<div class="col-row ${key === 'PK' ? 'is-pk' : ''} ${isFk ? 'is-fk' : ''}" data-table="${name}" data-col="${column}" data-parent="${parent ?? ''}">
+                    <code>${column}</code>${keyHtml}
+                </div>`;
+            }).join('');
+
+            card.innerHTML = `
+                <div class="card-head">
+                    <div class="card-name">
+                        <code>${name}</code>
+                        <span>${domain.label}</span>
+                    </div>
+                    <div class="card-label">${table.label}</div>
+                </div>
+                ${rows}
+            `;
+
+            canvas.appendChild(card);
+
+            const height = 63 + table.cols.length * 26;
+            y += height + 56;
+        });
+    });
+
+    function centerY(el) {
+        const r = el.getBoundingClientRect();
+        const c = canvas.getBoundingClientRect();
+        return { top: r.top - c.top, bottom: r.bottom - c.top, mid: r.top - c.top + r.height / 2, left: r.left - c.left, right: r.right - c.left };
+    }
+
+    function draw() {
+        const svgNS = 'http://www.w3.org/2000/svg';
+        const cardRects = {};
+        for (const name of Object.keys(TABLES)) {
+            const card = document.querySelector(`[data-table="${name}"].card`);
+            cardRects[name] = centerY(card);
+        }
+
+        for (const [fromTable, fromCol, toTable, toCol, core] of RELATIONS) {
+            const fromEl = document.querySelector(`.col-row[data-table="${fromTable}"][data-col="${fromCol}"]`);
+            const toEl = document.querySelector(`.col-row[data-table="${toTable}"][data-col="${toCol}"]`);
+            if (!fromEl || !toEl) continue;
+
+            const fromRow = centerY(fromEl);
+            const toRow = centerY(toEl);
+            const fromCard = cardRects[fromTable];
+            const toCard = cardRects[toTable];
+            if (!fromCard || !toCard) continue;
+
+            const sameColumn = Math.abs(fromCard.left - toCard.left) < 2;
+            let sx, sy, tx, ty, c1x, c1y, c2x, c2y;
+
+            if (sameColumn) {
+                // Route around the right side of the column.
+                sx = fromCard.right;
+                sy = fromRow.mid;
+                tx = toCard.right;
+                ty = toRow.mid;
+                const bulge = 64 + Math.min(90, Math.abs(sy - ty) / 6);
+                c1x = sx + bulge; c1y = sy;
+                c2x = tx + bulge; c2y = ty;
+            } else if (toCard.left >= fromCard.right) {
+                sx = fromCard.right;
+                sy = fromRow.mid;
+                tx = toCard.left;
+                ty = toRow.mid;
+                const dx = Math.max(60, (tx - sx) / 3);
+                c1x = sx + dx; c1y = sy;
+                c2x = tx - dx; c2y = ty;
+            } else {
+                sx = fromCard.left;
+                sy = fromRow.mid;
+                tx = toCard.right;
+                ty = toRow.mid;
+                const dx = Math.max(60, (sx - tx) / 3);
+                c1x = sx - dx; c1y = sy;
+                c2x = tx + dx; c2y = ty;
+            }
+
+            const path = document.createElementNS(svgNS, 'path');
+            path.setAttribute('d', `M ${sx} ${sy} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${tx} ${ty}`);
+            path.setAttribute('fill', 'none');
+            path.setAttribute('stroke', core ? '#1680ff' : '#94a3b8');
+            path.setAttribute('stroke-width', core ? 2.2 : 1.3);
+            path.setAttribute('stroke-opacity', core ? 0.85 : 0.32);
+            path.setAttribute('marker-end', core ? 'url(#arrow-core)' : 'url(#arrow)');
+            wires.appendChild(path);
+
+            // Small dot at the FK side to make the origin readable.
+            const dot = document.createElementNS(svgNS, 'circle');
+            dot.setAttribute('cx', sx);
+            dot.setAttribute('cy', sy);
+            dot.setAttribute('r', core ? 3.2 : 2.2);
+            dot.setAttribute('fill', core ? '#1680ff' : '#94a3b8');
+            dot.setAttribute('fill-opacity', core ? 0.9 : 0.45);
+            wires.appendChild(dot);
+        }
+
+        window.__ready = true;
+    }
+
+    requestAnimationFrame(() => requestAnimationFrame(draw));
+</script>
+</body>
+</html>

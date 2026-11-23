@@ -1,0 +1,381 @@
+@import 'tailwindcss';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../../resources/views/**/*.blade.php';
+@source '../../app/**/*.php';
+
+@import 'shared-tailwind/src/styles/input.css';
+
+/* ==========================================
+   Lapisan kompatibilitas
+   Memetakan token & komponen lama ke sistem
+   tema shared-tailwind, tanpa menimpa warna
+   utama dari package.
+   ========================================== */
+
+@theme {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-serif: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+    --color-paper: var(--color-canvas);
+    --color-paper-deep: var(--color-border);
+    --color-surface: var(--color-base);
+    --color-ink: var(--color-heading);
+    --color-ink-soft: var(--color-body);
+    --color-ink-muted: var(--color-muted);
+    --color-line: var(--color-border);
+    --color-line-strong: var(--color-neutral);
+    --color-moss: var(--color-success);
+    --color-moss-soft: var(--color-success-tint);
+    --color-ochre: var(--color-warning);
+    --color-ochre-soft: var(--color-warning-tint);
+    --color-slateblue: var(--color-info);
+    --color-slateblue-soft: var(--color-info-tint);
+    --color-clay: var(--color-danger);
+    --color-clay-soft: var(--color-danger-tint);
+}
+
+@layer components {
+    /* Kartu mengikuti radius & bayangan tema baru */
+    .card {
+        min-width: 0;
+        background: var(--color-base);
+        color: var(--color-heading);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-card);
+        box-shadow: var(--shadow-card);
+    }
+
+    .card-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px 16px;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .card-header > * {
+        min-width: 0;
+    }
+
+    .card-body {
+        padding: 20px;
+    }
+
+    /* Tombol: pakai sistem 10 warna dari package */
+    .btn,
+    .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        flex-shrink: 0;
+        padding: 10px 18px;
+        font-size: 13.5px;
+        font-weight: 600;
+        line-height: 1.3;
+        white-space: nowrap;
+        border-radius: var(--radius-button);
+        transition: all 240ms cubic-bezier(0.4, 0, 0.2, 1);
+        background: var(--color-primary);
+        color: var(--color-on-primary);
+        border: 1px solid transparent;
+    }
+
+    .btn:hover,
+    .btn-primary:hover {
+        background: var(--color-primary-dark);
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        flex-shrink: 0;
+        padding: 10px 18px;
+        font-size: 13.5px;
+        font-weight: 600;
+        line-height: 1.3;
+        white-space: nowrap;
+        border-radius: var(--radius-button);
+        background: var(--color-base);
+        color: var(--color-primary);
+        border: 1px solid var(--color-border);
+        transition: all 240ms ease;
+    }
+
+    .btn-secondary:hover {
+        background: var(--color-primary);
+        color: var(--color-on-primary);
+        border-color: var(--color-primary);
+        transform: translateY(-1px);
+    }
+
+    .btn-danger {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        flex-shrink: 0;
+        padding: 10px 18px;
+        font-size: 13.5px;
+        font-weight: 600;
+        line-height: 1.3;
+        white-space: nowrap;
+        border-radius: var(--radius-button);
+        background: var(--color-danger);
+        color: var(--color-on-danger);
+        border: 1px solid transparent;
+    }
+
+    .btn-danger:hover {
+        background: color-mix(in srgb, var(--color-danger) 82%, #7f1d1d);
+        transform: translateY(-1px);
+    }
+
+    .btn-ghost {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        flex-shrink: 0;
+        padding: 9px 16px;
+        font-size: 13.5px;
+        font-weight: 600;
+        line-height: 1.3;
+        white-space: nowrap;
+        border-radius: var(--radius-button);
+        background: transparent;
+        color: var(--color-primary);
+        border: 1px solid transparent;
+    }
+
+    .btn-ghost:hover {
+        background: var(--color-primary-tint);
+        transform: translateY(-1px);
+    }
+
+    .btn-sm {
+        padding: 7px 14px;
+        font-size: 12.5px;
+    }
+
+    /* Form mengikuti tema */
+    .form-label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 12.5px;
+        font-weight: 600;
+        line-height: 1.4;
+        color: var(--color-muted);
+    }
+
+    .form-input,
+    .form-select,
+    .form-textarea {
+        display: block;
+        width: 100%;
+        padding: 9px 12px;
+        font-size: 13.5px;
+        line-height: 1.5;
+        background: var(--color-base);
+        color: var(--color-heading);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-button);
+        transition: border-color var(--transition-smooth), box-shadow var(--transition-smooth);
+    }
+
+    .form-textarea {
+        min-height: 90px;
+        resize: vertical;
+    }
+
+    .form-input::placeholder,
+    .form-textarea::placeholder {
+        color: var(--color-muted);
+        opacity: 0.7;
+    }
+
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px var(--color-primary-tint);
+        outline: none;
+    }
+
+    .form-error {
+        margin-top: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        line-height: 1.4;
+        color: var(--color-danger);
+    }
+
+    /* Badge versi tema baru */
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        flex-shrink: 0;
+        padding: 3px 9px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 1.45;
+        white-space: nowrap;
+        background: var(--color-primary-tint);
+        color: var(--color-primary-dark);
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 20%, transparent);
+    }
+
+    /* Progress bar mengikuti warna utama */
+    .progress-track {
+        height: 8px;
+        background: var(--color-border);
+        border-radius: 999px;
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        height: 100%;
+        background: var(--color-primary);
+        border-radius: inherit;
+        transition: width 380ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    /* Tabel */
+    .table-head {
+        background: var(--color-canvas);
+        color: var(--color-muted);
+        border-top: 1px solid var(--color-border);
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .table-head th {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .table-cell {
+        padding: 12px 16px;
+        font-size: 13px;
+        line-height: 1.5;
+        vertical-align: middle;
+        color: var(--color-body);
+    }
+
+    /* Navigasi & tautan */
+    .nav-link {
+        color: var(--color-body);
+        border-radius: var(--radius-button);
+    }
+
+    .nav-link:hover {
+        background: var(--color-primary-tint);
+        color: var(--color-primary-dark);
+    }
+
+    .nav-link-active {
+        background: var(--color-primary-tint);
+        color: var(--color-primary-dark);
+        font-weight: 700;
+    }
+
+    .link-quiet {
+        color: var(--color-primary);
+        font-weight: 600;
+    }
+
+    .link-quiet:hover {
+        color: var(--color-primary-dark);
+        text-decoration: underline;
+        text-underline-offset: 4px;
+    }
+
+    /* Utilitas */
+    .kicker {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        font-weight: 500;
+        line-height: 1.4;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--color-muted);
+    }
+
+    .page-title,
+    .section-title,
+    .data-number {
+        color: var(--color-heading);
+    }
+
+    .page-title {
+        font-size: 21px;
+        font-weight: 700;
+        line-height: 1.25;
+        letter-spacing: -0.015em;
+    }
+
+    @media (min-width: 640px) {
+        .page-title {
+            font-size: 23px;
+        }
+    }
+
+    .section-title {
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1.35;
+        letter-spacing: -0.01em;
+    }
+
+    .data-number {
+        font-size: 24px;
+        font-weight: 700;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .stamp {
+        border: 1px solid currentColor;
+        padding: 8px 12px;
+        font-family: var(--font-mono);
+        font-size: 9px;
+        line-height: 1.6;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        text-align: center;
+    }
+
+    .paper-lines {
+        background-image: none;
+    }
+
+    .scrollbar-thin {
+        scrollbar-color: var(--color-border) transparent;
+    }
+
+    /* Avatar bulat mengikuti tema */
+    .theme-avatar {
+        border-radius: 50%;
+        background: var(--color-primary);
+        color: var(--color-on-primary);
+        border: none;
+    }
+}
+
+/* Sembunyikan elemen Alpine sebelum inisialisasi */
+[x-cloak] {
+    display: none !important;
+}
